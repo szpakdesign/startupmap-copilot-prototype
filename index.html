@@ -355,7 +355,7 @@ function recvActions(soundKey) {
 }
 
 function atlasHTML(inMain) {
-  const sMeta = sentMeta(inMain ? "Jun 28, 5:56 PM" : "");
+  const sMeta = sentMeta();
   const rows = ATLAS_ROWS.map(([name, icons, ov, ceo, desc]) => `
     <tr>
       <td><span class="badge b-reject">Reject</span></td>
@@ -366,7 +366,7 @@ function atlasHTML(inMain) {
       <td class="more">${iconBtn("more_h", 16, "More")}</td>
     </tr>`).join("");
   const recvMeta = inMain
-    ? `<div class="meta"><span>Jun 28, 5:56 PM</span>${recvActions("sound")}</div>`
+    ? `<div class="meta">${recvActions("sound")}</div>`
     : `<div class="meta">${recvActions("m_sound")}</div>`;
   return `
     <div class="sent"><div class="bubble">${ATLAS_URLS.map(u => `<a href="${u}" target="_blank" rel="noopener">${u}</a>`).join("")}</div>${sMeta}</div>
@@ -383,10 +383,10 @@ function atlasHTML(inMain) {
 
 function turnsHTML(c, inMain) {
   return c.turns.map(t => `
-    <div class="sent"><div class="bubble">${esc(t.q)}</div>${sentMeta(inMain ? c.date : "")}</div>
+    <div class="sent"><div class="bubble">${esc(t.q)}</div>${sentMeta()}</div>
     <div class="recv">
       <div class="prose">${t.a.map(p => `<p>${rich(p)}</p>`).join("")}</div>
-      ${inMain ? `<div class="meta"><span>${c.date}</span>${recvActions("sound")}</div>` : `<div class="meta">${recvActions("m_sound")}</div>`}
+      ${inMain ? `<div class="meta">${recvActions("sound")}</div>` : `<div class="meta">${recvActions("m_sound")}</div>`}
     </div>`).join("");
 }
 const convoHTML = (c, inMain) => c.atlas ? atlasHTML(inMain) : turnsHTML(c, inMain);
