@@ -68,6 +68,14 @@
   .motion-enter-sheet { animation-name: motion-enter-fade; }
   .motion-exit-sheet.is-exiting { animation-name: motion-exit-fade; }
 }
+.motion-enter-sheet[data-motion-edge="start"] { animation-name: motion-enter-sheet-start; }
+@keyframes motion-enter-sheet-start { from { transform: translateX(-100%); } }
+.motion-exit-sheet[data-motion-edge="start"].is-exiting { animation-name: motion-exit-sheet-start; }
+@keyframes motion-exit-sheet-start { to { transform: translateX(-100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .motion-enter-sheet[data-motion-edge="start"] { animation-name: motion-enter-fade; }
+  .motion-exit-sheet[data-motion-edge="start"].is-exiting { animation-name: motion-exit-fade; }
+}
 .motion-enter-toast { animation: motion-enter-toast var(--motion-duration-enter-m) var(--motion-easing-enter) both; }
 @keyframes motion-enter-toast { from { opacity: 0; transform: translateY(calc(var(--motion-distance-m) * -1)); } }
 .motion-exit-toast.is-exiting { animation: motion-exit-toast var(--motion-duration-exit-s) var(--motion-easing-exit) forwards; }
@@ -217,8 +225,13 @@ td.more { width: 44px; padding: 0 12px; }
 
 /* ---- Tablet and phone (below 1024): no Sidebar, All chats opens as a bottom Sheet ---- */
 .grabber { display: none; }
+.drawer-close { display: none; }
+.logo-row { justify-content: space-between; }
 @media (max-width: 1023px) {
   .side { display: none; }
+  .side.open { display: flex; position: fixed; z-index: 30; inset: 0 auto 0 0; width: min(280px, 85vw); padding-top: calc(8px + env(safe-area-inset-top, 0px)); padding-left: max(8px, env(safe-area-inset-left, 0px)); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+  .side.open .drawer-close { display: grid; }
+  .nav-scrim { position: fixed; inset: 0; z-index: 25; background: var(--scrim); }
   .scrim.is-sheet { place-items: end stretch; padding: 96px 0 0; }
   .dialog.sheet { width: 100%; height: 100%; border-radius: 16px 16px 0 0; border-bottom: 0; }
   .sheet .grabber { display: block; width: 48px; height: 4px; border-radius: 2px; background: rgba(0,0,0,0.16); margin: 8px auto 0; flex: none; }
@@ -245,7 +258,7 @@ td.more { width: 44px; padding: 0 12px; }
 
 <div class="app">
   <aside class="side" aria-label="Navigation">
-    <div class="logo-row"><div class="logo" data-icon="logo"></div></div>
+    <div class="logo-row"><div class="logo" data-icon="logo"></div><button class="ib ib32 drawer-close motion-feedback-hover" id="drawer-close" aria-label="Close menu" data-icon="close"></button></div>
     <nav class="menu" id="menu"></nav>
     <div class="avatar-row"><img class="avatar" id="avatar" alt="Marcin"></div>
   </aside>
@@ -276,6 +289,7 @@ td.more { width: 44px; padding: 0 12px; }
   </main>
 </div>
 
+<div class="nav-scrim motion-enter-scrim motion-exit-scrim" id="nav-scrim" hidden></div>
 <div id="overlay-root"></div>
 <div id="toast-root"></div>
 
@@ -458,8 +472,8 @@ function renderMenu() {
     <button class="nav-item motion-feedback-hover" style="margin-top:16px">${ic("portfolio")}<span class="label">Portfolio</span></button>
     <button class="nav-item motion-feedback-hover">${ic("cms")}<span class="label">CMS</span></button>
     <button class="nav-item motion-feedback-hover">${ic("dealflow")}<span class="label">Dealflow</span></button>`;
-  $("#menu").querySelectorAll(".nav-sub").forEach(b => b.onclick = () => openChat(b.dataset.id));
-  $("#view-all").onclick = openDialog;
+  $("#menu").querySelectorAll(".nav-sub").forEach(b => b.onclick = () => { const id = b.dataset.id; closeNav(() => openChat(id)); });
+  $("#view-all").onclick = () => closeNav(openDialog);
 }
 
 function openChat(id) {
@@ -663,7 +677,25 @@ document.addEventListener("keydown", e => {
 });
 
 hydrateIcons();
-$("#sidebar-btn").onclick = () => { if (isSheet()) openDialog(); };
+/* Below 1024 the sidebar button opens the navigation drawer (SR-276) */
+function openNav() {
+  const side = $(".side"), sc = $("#nav-scrim");
+  side.classList.remove("is-exiting"); sc.classList.remove("is-exiting");
+  side.classList.add("open", "motion-enter-sheet", "motion-exit-sheet"); side.dataset.motionEdge = "start";
+  sc.hidden = false;
+  $("#drawer-close").focus();
+}
+function closeNav(then) {
+  const side = $(".side"), sc = $("#nav-scrim");
+  if (!side.classList.contains("open")) { then && then(); return; }
+  sc.classList.add("is-exiting");
+  exitThen(side, () => { side.classList.remove("open", "motion-enter-sheet", "motion-exit-sheet", "is-exiting"); sc.hidden = true; sc.classList.remove("is-exiting"); then && then(); });
+}
+$("#sidebar-btn").onclick = () => { if (isSheet()) openNav(); };
+$("#drawer-close").onclick = () => closeNav();
+$("#nav-scrim").onclick = () => closeNav();
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $(".side").classList.contains("open") && !$("#scrim")) closeNav(); });
+matchMedia("(max-width: 1023px)").addEventListener("change", e => { if (!e.matches) closeNav(); });
 $("#avatar").src = AVATAR;
 openChat("c0");
 if (location.hash === "#all-chats") openDialog();
