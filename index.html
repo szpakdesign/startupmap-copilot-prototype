@@ -340,6 +340,7 @@ let chats = TITLES.map(([title, kind, co], i) => {
 let currentId = "c0";
 let previewId = "c0";
 let editingId = null;
+let confirmId = null;
 
 /* ---------- Rendering helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -415,7 +416,7 @@ function openChat(id) {
 /* ---------- All chats dialog ---------- */
 function openDialog() {
   if ($("#scrim")) return;
-  editingId = null; previewId = currentId;
+  editingId = null; confirmId = null; previewId = currentId;
   $("#overlay-root").innerHTML = `
     <div class="scrim motion-enter-scrim motion-exit-scrim" id="scrim">
       <div class="dialog motion-enter-dialog motion-exit-dialog" id="dialog" role="dialog" aria-modal="true" aria-label="All chats">
@@ -461,8 +462,15 @@ function renderList(stagger) {
     <div class="li editing" data-id="${c.id}" role="option">
       <input id="rename-input" value="${esc(c.title)}" aria-label="Chat name">
       <div class="right">
-        <button class="ib ib16" data-act="save" aria-label="Save">${ic("check")}</button>
         <button class="ib ib16" data-act="cancel" aria-label="Cancel">${ic("close_dark")}</button>
+        <button class="ib ib16" data-act="save" aria-label="Save">${ic("check")}</button>
+      </div>
+    </div>` : c.id === confirmId ? `
+    <div class="li editing" data-id="${c.id}" role="option">
+      <span class="t">${esc(c.title)}</span>
+      <div class="right">
+        <button class="ib ib16" data-act="cancel-delete" aria-label="Cancel delete">${ic("close_dark")}</button>
+        <button class="ib ib16" data-act="confirm-delete" aria-label="Confirm delete">${ic("check")}</button>
       </div>
     </div>` : `
     <div class="li motion-feedback-hover motion-exit-item ${stagger ? "motion-enter-item" : ""} ${c.id === currentId ? "current" : ""}" style="--i:${Math.min(i, 14)}" data-id="${c.id}" role="option" tabindex="0" aria-selected="${c.id === previewId}">
@@ -476,16 +484,18 @@ function renderList(stagger) {
 
   list.querySelectorAll(".li").forEach(li => {
     const id = li.dataset.id;
-    li.addEventListener("mouseenter", () => { if (!editingId) showPreview(id); });
+    li.addEventListener("mouseenter", () => { if (!editingId && !confirmId) showPreview(id); });
     li.addEventListener("focus", () => { if (!editingId) showPreview(id); });
     li.addEventListener("click", e => {
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (act === "open") { closeDialog(); openChat(id); }
       else if (act === "edit") startRename(id);
-      else if (act === "delete") removeChat(id, li);
+      else if (act === "delete") { confirmId = id; editingId = null; renderList(false); list.querySelector(`[data-act="confirm-delete"]`)?.focus(); }
+      else if (act === "confirm-delete") { confirmId = null; removeChat(id, li); }
+      else if (act === "cancel-delete") { confirmId = null; renderList(false); }
       else if (act === "save") saveRename();
       else if (act === "cancel") cancelRename();
-      else if (!editingId) showPreview(id);
+      else if (!editingId && !confirmId) showPreview(id);
     });
   });
   const inp = $("#rename-input");
@@ -503,7 +513,7 @@ function renderPreview() {
   p.scrollTop = 0;
 }
 
-function startRename(id) { editingId = id; previewId = id; renderList(false); renderPreview(); }
+function startRename(id) { confirmId = null; editingId = id; previewId = id; renderList(false); renderPreview(); }
 function saveRename() {
   const v = $("#rename-input").value.trim(); const c = chats.find(x => x.id === editingId);
   if (c && v) c.title = v;
@@ -533,7 +543,11 @@ function showToast(text) {
   toastTimer = setTimeout(hide, 5000);
 }
 
-document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#scrim") && !editingId) closeDialog(); });
+document.addEventListener("keydown", e => {
+  if (e.key !== "Escape" || !$("#scrim") || editingId) return;
+  if (confirmId) { confirmId = null; renderList(false); return; }
+  closeDialog();
+});
 
 hydrateIcons();
 $("#avatar").src = AVATAR;
