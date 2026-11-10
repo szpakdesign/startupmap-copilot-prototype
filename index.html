@@ -160,17 +160,20 @@ td.more { width: 44px; padding: 0 12px; }
 .scrim { position: fixed; inset: 0; z-index: 20; background: var(--scrim); display: grid; place-items: center; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
 .dialog { width: min(1036px, 100%); height: min(672px, 100%); background: var(--bg); border: 1px solid var(--line-dialog); border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; overflow: hidden; }
 .dlg-top { height: 64px; flex: none; position: relative; padding: 20px 20px 0; }
-.dlg-top .search { width: 480px; margin: 0; }
+.dlg-head { display: flex; align-items: flex-start; gap: 16px; }
+.dlg-head h2 { margin: 0; font-size: 24px; line-height: 34px; font-weight: 400; color: var(--fg); white-space: nowrap; }
+.dlg-top .search { width: 264px; margin: 0; }
 .dlg-close { position: absolute; top: 12px; right: 12px; }
 .dlg-body { flex: 1; min-height: 0; display: flex; gap: 32px; padding: 24px 20px; }
 .list { width: 240px; flex: none; overflow-y: auto; display: flex; flex-direction: column; }
 .li { display: flex; align-items: center; gap: 4px; height: 40px; padding: 0 12px; border-radius: 8px; color: var(--fg-2); cursor: default; flex: none; }
 .li .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .li.current { color: var(--fg); font-weight: 500; }
-.li:hover, .li:focus-within, .li.editing, .li.active { background: var(--hover); color: var(--fg); }
+.li:hover, .li:focus-within, .li.editing { background: var(--hover); color: var(--fg); }
+.li.selected { color: var(--fg); font-weight: 500; }
 .dialog:focus { outline: none; }
 .li .right { display: none; gap: 8px; align-items: center; }
-.li:hover .right, .li:focus-within .right, .li.editing .right, .li.active .right { display: flex; }
+.li:hover .right, .li:focus-within .right, .li.editing .right { display: flex; }
 .li input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; color: var(--fg); padding: 0; caret-color: #4d63fd; }
 .li .right .ib:hover { background: none; }
 :root { --color-icon-primary: #1a1a1a; --color-icon-secondary: #4a4a4a; }
@@ -187,7 +190,9 @@ td.more { width: 44px; padding: 0 12px; }
 @media (max-width: 767px) {
   .side { display: none; }
   .toolbar .search { display: none; }
-  .dlg-top .search { width: calc(100% - 48px); }
+  .dlg-top .search { width: 100%; }
+  .dlg-head { flex-direction: column; gap: 8px; padding-right: 40px; }
+  .dlg-top { height: auto; padding-bottom: 8px; }
   .dlg-body { flex-direction: column; gap: 16px; }
   .list { width: 100%; max-height: 45%; }
 }
@@ -425,9 +430,9 @@ function openDialog() {
   editingId = null; confirmId = null; previewId = currentId;
   $("#overlay-root").innerHTML = `
     <div class="scrim motion-enter-scrim motion-exit-scrim" id="scrim">
-      <div class="dialog motion-enter-dialog motion-exit-dialog" id="dialog" role="dialog" aria-modal="true" aria-label="All chats" tabindex="-1">
+      <div class="dialog motion-enter-dialog motion-exit-dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" tabindex="-1">
         <div class="dlg-top">
-          <label class="search"><input id="dlg-search" placeholder="Search" aria-label="Search chats"><span class="ib ib32 motion-feedback-hover">${ic("filter")}</span></label>
+          <div class="dlg-head"><h2 id="dlg-title">All chats</h2><label class="search"><input id="dlg-search" placeholder="Search" aria-label="Search chats"><span class="ib ib32 motion-feedback-hover">${ic("filter")}</span></label></div>
           <button class="ib ib40 dlg-close motion-feedback-hover" id="dlg-close" aria-label="Close">${ic("close")}</button>
         </div>
         <div class="dlg-body">
@@ -449,21 +454,22 @@ function openDialog() {
 /* Keyboard: arrows move through chats, Enter renames, Enter again saves */
 function onDialogKey(e) {
   if (editingId || confirmId) return;
+  if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeDialog(); return; }
   const ids = filtered().map(c => c.id);
   if (!ids.length) return;
   if (e.key === "ArrowDown" || e.key === "ArrowUp") {
     e.preventDefault();
-    let i = ids.indexOf(activeId);
+    let i = ids.indexOf(previewId);
     i = i < 0 ? 0 : Math.max(0, Math.min(ids.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)));
     setActive(ids[i], true);
-  } else if (e.key === "Enter" && e.target.id !== "dlg-search" && activeId && ids.includes(activeId)) {
+  } else if (e.key === "Enter" && e.target.id !== "dlg-search" && ids.includes(previewId)) {
     e.preventDefault();
-    startRename(activeId);
+    startRename(previewId);
   }
 }
 function setActive(id, scroll) {
   activeId = id;
-  $("#list").querySelectorAll(".li").forEach(li => li.classList.toggle("active", li.dataset.id === id));
+  $("#list").querySelectorAll(".li").forEach(li => { li.classList.toggle("selected", li.dataset.id === id); li.setAttribute("aria-selected", li.dataset.id === id); });
   if (scroll) $(`.li[data-id="${id}"]`)?.scrollIntoView({ block: "nearest" });
   showPreview(id);
 }
@@ -503,7 +509,7 @@ function renderList(stagger) {
         <button class="ib ib16 motion-feedback-hover" data-act="confirm-delete" aria-label="Confirm delete">${ic("check")}</button>
       </div>
     </div>` : `
-    <div class="li motion-feedback-hover motion-exit-item ${stagger ? "motion-enter-item" : ""} ${c.id === currentId ? "current" : ""} ${c.id === activeId ? "active" : ""}" style="--i:${Math.min(i, 14)}" data-id="${c.id}" role="option" tabindex="0" aria-selected="${c.id === previewId}">
+    <div class="li motion-feedback-hover motion-exit-item ${stagger ? "motion-enter-item" : ""} ${c.id === previewId ? "selected" : ""}" style="--i:${Math.min(i, 14)}" data-id="${c.id}" role="option" tabindex="0" aria-selected="${c.id === previewId}">
       <span class="t">${esc(c.title)}</span>
       <div class="right">
         <button class="ib ib16 motion-feedback-hover" data-act="open" aria-label="Open ${esc(c.title)}">${ic("ext")}</button>
@@ -514,8 +520,7 @@ function renderList(stagger) {
 
   list.querySelectorAll(".li").forEach(li => {
     const id = li.dataset.id;
-    li.addEventListener("mouseenter", () => { if (!editingId && !confirmId) setActive(id, false); });
-    li.addEventListener("focus", () => { if (!editingId) showPreview(id); });
+
     li.addEventListener("click", e => {
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (act === "open") { closeDialog(); openChat(id); }
@@ -525,7 +530,7 @@ function renderList(stagger) {
       else if (act === "cancel-delete") { confirmId = null; renderList(false); $("#dialog")?.focus(); }
       else if (act === "save") saveRename();
       else if (act === "cancel") cancelRename();
-      else if (!editingId && !confirmId) showPreview(id);
+      else if (!editingId && !confirmId) setActive(id, false);
     });
   });
   const inp = $("#rename-input");
