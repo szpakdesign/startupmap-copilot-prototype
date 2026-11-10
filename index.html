@@ -603,7 +603,7 @@ function startRename(id) { confirmId = null; activeId = id; editingId = id; prev
 function saveRename() {
   const v = $("#rename-input").value.trim(); const c = chats.find(x => x.id === editingId);
   const old = c ? c.title : "";
-  if (c && v && v !== old) { c.title = v; showToast(`${old} was renamed to ${v}`, "toast_edit"); }
+  if (c && v && v !== old) { c.title = v; showToast(`${old} was renamed`, "toast_edit"); }
   editingId = null; renderList(false); renderMenu();
   $("#dialog")?.focus();
 }
