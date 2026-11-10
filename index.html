@@ -167,9 +167,10 @@ td.more { width: 44px; padding: 0 12px; }
 .li { display: flex; align-items: center; gap: 4px; height: 40px; padding: 0 12px; border-radius: 8px; color: var(--fg-2); cursor: default; flex: none; }
 .li .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .li.current { color: var(--fg); font-weight: 500; }
-.li:hover, .li:focus-within, .li.editing { background: var(--hover); color: var(--fg); }
+.li:hover, .li:focus-within, .li.editing, .li.active { background: var(--hover); color: var(--fg); }
+.dialog:focus { outline: none; }
 .li .right { display: none; gap: 8px; align-items: center; }
-.li:hover .right, .li:focus-within .right, .li.editing .right { display: flex; }
+.li:hover .right, .li:focus-within .right, .li.editing .right, .li.active .right { display: flex; }
 .li input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; color: var(--fg); padding: 0; caret-color: #4d63fd; }
 .li .right .ib:hover { background: none; }
 :root { --color-icon-primary: #1a1a1a; --color-icon-secondary: #4a4a4a; }
@@ -261,6 +262,7 @@ edit:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://
 del:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6.66732 6.33333L6.66732 11.6667M2.33398 4H13.6673M9.33398 6.33333V11.6667M4.00065 4H12.0007V12C12.0007 13.1046 11.1052 14 10.0007 14H6.00065C4.89608 14 4.00065 13.1046 4.00065 12V4ZM5.33398 4H10.6673V3.33333C10.6673 2.59695 10.0704 2 9.33398 2H6.66732C5.93094 2 5.33398 2.59695 5.33398 3.33333V4Z" stroke="currentColor" stroke-linecap="round"/></svg>`,
 m_sound:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.3333 7.9974H14.6667M11.6667 4.9974L13.6667 3.66406M11.6667 10.9974L13.6667 12.3307M7.82543 12.8698C8.31527 13.1845 8.56018 13.3418 8.76328 13.3301C8.94021 13.3199 9.10365 13.2357 9.21059 13.0995C9.33333 12.9431 9.33333 12.6595 9.33333 12.0922V3.90259C9.33333 3.33532 9.33333 3.05169 9.21059 2.89534C9.10365 2.75914 8.94021 2.67485 8.76328 2.66467C8.56018 2.65298 8.31527 2.81031 7.82543 3.12498L4.09253 6.3406H2.66667C2.29848 6.3406 2 6.63907 2 7.00726V8.98753C2 9.35572 2.29848 9.6542 2.66667 9.6542H4.09253L7.82543 12.8698Z" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 toast_trash:`<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.6667 8.7526V13.7526M3.125 5.21094H16.875M7.5 5.21094V3.96094C7.5 2.96094 7.75 2.71094 8.75 2.71094H11.25C12.25 2.71094 12.5 2.96094 12.5 3.96094V5.21094M4.58333 5.21094L5.20833 15.1359C5.275 16.2276 6.19167 17.0859 7.29167 17.0859H12.7083C13.8083 17.0859 14.7167 16.2276 14.7917 15.1359L15.4167 5.21094M8.33333 8.7526V13.7526" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+toast_edit:`<svg width="20" height="20" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.7427 6.45188L9.54812 4.25732M4.64908 13.5455L13.4754 4.71918C13.7651 4.42949 13.9099 4.28464 13.9642 4.11761C14.0119 3.97069 14.0119 3.81243 13.9642 3.66551C13.9099 3.49848 13.7651 3.35363 13.4754 3.06394L12.9361 2.52462C12.6464 2.23492 12.5015 2.09007 12.3345 2.0358C12.1876 1.98807 12.0293 1.98807 11.8824 2.0358C11.7154 2.09007 11.5705 2.23492 11.2808 2.52462L2.45451 11.3509L2 14L4.64908 13.5455Z" stroke="white" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 toast_close:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><g filter="url(#filter0_d_toast_close)"><path d="M12 4L4 12M4 4L12 12" stroke="white" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/></g><defs><filter id="filter0_d_toast_close" x="-1" y="-1" width="18" height="18" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset/><feGaussianBlur stdDeviation="0.5"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.8 0"/><feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_toast_close"/><feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_toast_close" result="shape"/></filter></defs></svg>`,
 close_dark:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12.7992 3.20312L7.99922 8.00312M7.99922 8.00312L3.19922 12.8031M7.99922 8.00312L12.7992 12.8031M7.99922 8.00312L3.19922 3.20312" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
 s_edit:`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M11.7427 6.45188L9.54812 4.25732M4.64908 13.5455L13.4754 4.71918C13.7651 4.42949 13.9099 4.28464 13.9642 4.11761C14.0119 3.97069 14.0119 3.81243 13.9642 3.66551C13.9099 3.49848 13.7651 3.35363 13.4754 3.06394L12.9361 2.52462C12.6464 2.23492 12.5015 2.09007 12.3345 2.0358C12.1876 1.98807 12.0293 1.98807 11.8824 2.0358C11.7154 2.09007 11.5705 2.23492 11.2808 2.52462L2.45451 11.3509L2 14L4.64908 13.5455Z" stroke="#9E9E9E" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
@@ -344,6 +346,7 @@ let currentId = "c0";
 let previewId = "c0";
 let editingId = null;
 let confirmId = null;
+let activeId = null;
 
 /* ---------- Rendering helpers ---------- */
 const $ = (s, r = document) => r.querySelector(s);
@@ -422,7 +425,7 @@ function openDialog() {
   editingId = null; confirmId = null; previewId = currentId;
   $("#overlay-root").innerHTML = `
     <div class="scrim motion-enter-scrim motion-exit-scrim" id="scrim">
-      <div class="dialog motion-enter-dialog motion-exit-dialog" id="dialog" role="dialog" aria-modal="true" aria-label="All chats">
+      <div class="dialog motion-enter-dialog motion-exit-dialog" id="dialog" role="dialog" aria-modal="true" aria-label="All chats" tabindex="-1">
         <div class="dlg-top">
           <label class="search"><input id="dlg-search" placeholder="Search" aria-label="Search chats"><span class="ib ib32 motion-feedback-hover">${ic("filter")}</span></label>
           <button class="ib ib40 dlg-close motion-feedback-hover" id="dlg-close" aria-label="Close">${ic("close")}</button>
@@ -436,9 +439,33 @@ function openDialog() {
   $("#scrim").addEventListener("mousedown", e => { if (e.target.id === "scrim") closeDialog(); });
   $("#dlg-close").onclick = closeDialog;
   $("#dlg-search").addEventListener("input", () => renderList(true));
+  activeId = currentId;
   renderList(true);
   renderPreview();
-  $("#dlg-search").focus();
+  $("#dialog").addEventListener("keydown", onDialogKey);
+  $("#dialog").focus();
+}
+
+/* Keyboard: arrows move through chats, Enter renames, Enter again saves */
+function onDialogKey(e) {
+  if (editingId || confirmId) return;
+  const ids = filtered().map(c => c.id);
+  if (!ids.length) return;
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    e.preventDefault();
+    let i = ids.indexOf(activeId);
+    i = i < 0 ? 0 : Math.max(0, Math.min(ids.length - 1, i + (e.key === "ArrowDown" ? 1 : -1)));
+    setActive(ids[i], true);
+  } else if (e.key === "Enter" && e.target.id !== "dlg-search" && activeId && ids.includes(activeId)) {
+    e.preventDefault();
+    startRename(activeId);
+  }
+}
+function setActive(id, scroll) {
+  activeId = id;
+  $("#list").querySelectorAll(".li").forEach(li => li.classList.toggle("active", li.dataset.id === id));
+  if (scroll) $(`.li[data-id="${id}"]`)?.scrollIntoView({ block: "nearest" });
+  showPreview(id);
 }
 
 function exitThen(el, done) {
@@ -476,7 +503,7 @@ function renderList(stagger) {
         <button class="ib ib16 motion-feedback-hover" data-act="confirm-delete" aria-label="Confirm delete">${ic("check")}</button>
       </div>
     </div>` : `
-    <div class="li motion-feedback-hover motion-exit-item ${stagger ? "motion-enter-item" : ""} ${c.id === currentId ? "current" : ""}" style="--i:${Math.min(i, 14)}" data-id="${c.id}" role="option" tabindex="0" aria-selected="${c.id === previewId}">
+    <div class="li motion-feedback-hover motion-exit-item ${stagger ? "motion-enter-item" : ""} ${c.id === currentId ? "current" : ""} ${c.id === activeId ? "active" : ""}" style="--i:${Math.min(i, 14)}" data-id="${c.id}" role="option" tabindex="0" aria-selected="${c.id === previewId}">
       <span class="t">${esc(c.title)}</span>
       <div class="right">
         <button class="ib ib16 motion-feedback-hover" data-act="open" aria-label="Open ${esc(c.title)}">${ic("ext")}</button>
@@ -487,15 +514,15 @@ function renderList(stagger) {
 
   list.querySelectorAll(".li").forEach(li => {
     const id = li.dataset.id;
-    li.addEventListener("mouseenter", () => { if (!editingId && !confirmId) showPreview(id); });
+    li.addEventListener("mouseenter", () => { if (!editingId && !confirmId) setActive(id, false); });
     li.addEventListener("focus", () => { if (!editingId) showPreview(id); });
     li.addEventListener("click", e => {
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (act === "open") { closeDialog(); openChat(id); }
       else if (act === "edit") startRename(id);
       else if (act === "delete") { confirmId = id; editingId = null; renderList(false); list.querySelector(`[data-act="confirm-delete"]`)?.focus(); }
-      else if (act === "confirm-delete") { confirmId = null; removeChat(id, li); }
-      else if (act === "cancel-delete") { confirmId = null; renderList(false); }
+      else if (act === "confirm-delete") { confirmId = null; removeChat(id, li); $("#dialog")?.focus(); }
+      else if (act === "cancel-delete") { confirmId = null; renderList(false); $("#dialog")?.focus(); }
       else if (act === "save") saveRename();
       else if (act === "cancel") cancelRename();
       else if (!editingId && !confirmId) showPreview(id);
@@ -504,7 +531,7 @@ function renderList(stagger) {
   const inp = $("#rename-input");
   if (inp) {
     inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length);
-    inp.addEventListener("keydown", e => { if (e.key === "Enter") saveRename(); if (e.key === "Escape") { e.stopPropagation(); cancelRename(); } });
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); saveRename(); } if (e.key === "Escape") { e.stopPropagation(); cancelRename(); } });
   }
 }
 
@@ -516,13 +543,15 @@ function renderPreview() {
   p.scrollTop = 0;
 }
 
-function startRename(id) { confirmId = null; editingId = id; previewId = id; renderList(false); renderPreview(); }
+function startRename(id) { confirmId = null; activeId = id; editingId = id; previewId = id; renderList(false); renderPreview(); }
 function saveRename() {
   const v = $("#rename-input").value.trim(); const c = chats.find(x => x.id === editingId);
-  if (c && v) c.title = v;
+  const old = c ? c.title : "";
+  if (c && v && v !== old) { c.title = v; showToast(`${old} was renamed to ${v}`, "toast_edit"); }
   editingId = null; renderList(false); renderMenu();
+  $("#dialog")?.focus();
 }
-function cancelRename() { editingId = null; renderList(false); }
+function cancelRename() { editingId = null; renderList(false); $("#dialog")?.focus(); }
 
 function removeChat(id, li) {
   const idx = chats.findIndex(c => c.id === id);
@@ -537,9 +566,9 @@ function removeChat(id, li) {
 }
 
 let toastTimer;
-function showToast(text) {
+function showToast(text, iconKey = "toast_trash") {
   const root = $("#toast-root"); clearTimeout(toastTimer);
-  root.innerHTML = `<div class="toast motion-enter-toast motion-exit-toast" role="status">${ic("toast_trash")}<span class="label">${esc(text)}</span><button class="ib ib32 motion-feedback-hover" id="toast-close" aria-label="Dismiss">${ic("toast_close")}</button></div>`;
+  root.innerHTML = `<div class="toast motion-enter-toast motion-exit-toast" role="status">${ic(iconKey)}<span class="label">${esc(text)}</span><button class="ib ib32 motion-feedback-hover" id="toast-close" aria-label="Dismiss">${ic("toast_close")}</button></div>`;
   const t = root.firstElementChild;
   const hide = () => exitThen(t, () => { if (root.firstElementChild === t) root.innerHTML = ""; });
   $("#toast-close").onclick = hide;
