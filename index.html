@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Copilot All Chats</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+<style>body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<style>
+/* Layout: Serenity 1.0 Copilot screen (Figma "Alan's request"): 221px sidebar, centred 880px chat column, "All chats" dialog with list + preview.
+   Look = Serenity 1.0 values read from Figma. Motion = Serenity 2.0 tokens and pattern classes (copied verbatim from the serenity-prototype starter). */
+:root {
+  --bg: #ffffff;
+  --bg-side: #fafafa;
+  --bg-subtle: #f4f4f5;
+  --bg-hover: #f2f2f3;
+  --fg: #18181b;
+  --fg-muted: #52525b;
+  --fg-faint: #a1a1aa;
+  --border: #e4e4e7;
+  --accent: #3b4bf2;
+  --link: #4552ec;
+  --danger: #dc2626;
+  --danger-bg: #fdecec;
+  --scrim: rgba(24, 24, 27, 0.45);
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --radius-s: 6px; --radius-m: 8px; --radius-l: 12px; --radius-pill: 999px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #111113; --bg-side: #18181b; --bg-subtle: #222226; --bg-hover: #26262b;
+  --fg: #f4f4f5; --fg-muted: #b4b4bb; --fg-faint: #71717a; --border: #2e2e33;
+  --accent: #6d78ff; --link: #8b94ff; --danger: #f87171; --danger-bg: #3a1a1a; --scrim: rgba(0,0,0,0.6); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #111113; --bg-side: #18181b; --bg-subtle: #222226; --bg-hover: #26262b;
+  --fg: #f4f4f5; --fg-muted: #b4b4bb; --fg-faint: #71717a; --border: #2e2e33;
+  --accent: #6d78ff; --link: #8b94ff; --danger: #f87171; --danger-bg: #3a1a1a; --scrim: rgba(0,0,0,0.6); color-scheme: dark; }
+
+/* ---- Serenity 2.0 Motion tokens (tokens.css, Motion collection) ---- */
+:root {
+  --motion-duration-feedback: 100ms; --motion-duration-toggle: 150ms;
+  --motion-duration-enter-s: 150ms; --motion-duration-enter-m: 250ms; --motion-duration-enter-l: 400ms;
+  --motion-duration-exit-s: 100ms; --motion-duration-exit-m: 200ms; --motion-duration-exit-l: 300ms;
+  --motion-duration-page: 600ms; --motion-duration-stagger: 50ms;
+  --motion-easing-default: cubic-bezier(0.2, 0, 0, 1); --motion-easing-enter: cubic-bezier(0, 0, 0, 1);
+  --motion-easing-exit: cubic-bezier(0.3, 0, 1, 1); --motion-easing-attention: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --motion-distance-s: 4px; --motion-distance-m: 16px; --motion-distance-l: 24px;
+  --motion-scale-pop: 0.96; --motion-scale-press: 0.98;
+}
+@media (prefers-reduced-motion: reduce) { :root {
+  --motion-duration-toggle: 0ms; --motion-duration-page: 300ms; --motion-duration-stagger: 0ms;
+  --motion-easing-attention: cubic-bezier(0.2, 0, 0, 1);
+  --motion-distance-s: 0; --motion-distance-m: 0; --motion-distance-l: 0;
+  --motion-scale-pop: 1; --motion-scale-press: 1; } }
+
+/* ---- Serenity 2.0 motion patterns used here (motion.css) ---- */
+.motion-feedback-hover { transition-property: background-color, color, border-color, fill, stroke, text-decoration-color; transition-duration: var(--motion-duration-feedback); transition-timing-function: var(--motion-easing-default); }
+.motion-feedback-press { transition-property: background-color, color, border-color, transform; transition-duration: var(--motion-duration-feedback); transition-timing-function: var(--motion-easing-default); }
+.motion-feedback-press:is([data-pressed], :active) { transform: scale(var(--motion-scale-press)); }
+.motion-enter-fade { animation: motion-enter-fade var(--motion-duration-enter-s) var(--motion-easing-enter) both; }
+@keyframes motion-enter-fade { from { opacity: 0; } }
+.motion-exit-fade:is([data-exiting], .is-exiting) { animation: motion-exit-fade var(--motion-duration-exit-s) var(--motion-easing-exit) forwards; }
+@keyframes motion-exit-fade { to { opacity: 0; } }
+.motion-enter-dialog { animation: motion-enter-pop var(--motion-duration-enter-m) var(--motion-easing-enter) both; transform-origin: center; }
+@keyframes motion-enter-pop { from { opacity: 0; transform: scale(var(--motion-scale-pop)); } }
+.motion-exit-dialog:is([data-exiting], .is-exiting) { animation: motion-exit-pop var(--motion-duration-exit-m) var(--motion-easing-exit) forwards; transform-origin: center; }
+@keyframes motion-exit-pop { to { opacity: 0; transform: scale(var(--motion-scale-pop)); } }
+.motion-enter-scrim { animation: motion-enter-fade var(--motion-duration-enter-m) var(--motion-easing-enter) both; }
+.motion-exit-scrim:is([data-exiting], .is-exiting) { animation: motion-exit-fade var(--motion-duration-exit-m) var(--motion-easing-exit) forwards; }
+.motion-enter-item { interpolate-size: allow-keywords; overflow: clip; animation: motion-enter-item var(--motion-duration-enter-s) var(--motion-easing-enter) calc(var(--i, 0) * var(--motion-duration-stagger)) both; }
+@keyframes motion-enter-item { from { opacity: 0; block-size: 0; } }
+.motion-exit-item:is([data-exiting], .is-exiting) { interpolate-size: allow-keywords; overflow: clip; animation: motion-exit-item var(--motion-duration-exit-s) var(--motion-easing-exit) forwards; }
+@keyframes motion-exit-item { to { opacity: 0; block-size: 0; } }
+.motion-enter-toast { animation: motion-enter-toast var(--motion-duration-enter-m) var(--motion-easing-enter) both; }
+@keyframes motion-enter-toast { from { opacity: 0; transform: translateY(calc(var(--motion-distance-m) * -1)); } }
+.motion-exit-toast:is([data-exiting], .is-exiting) { animation: motion-exit-toast var(--motion-duration-exit-s) var(--motion-easing-exit) forwards; }
+@keyframes motion-exit-toast { to { opacity: 0; transform: translateY(calc(var(--motion-distance-m) * -1)); } }
+@media (prefers-reduced-motion: reduce) {
+  .motion-enter-item { animation-name: motion-enter-fade; }
+  .motion-exit-item:is([data-exiting], .is-exiting) { animation-name: motion-exit-fade; }
+}
+
+/* ---- App ---- */
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; -webkit-font-smoothing: antialiased; }
+* { box-sizing: border-box; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: var(--radius-s); }
+svg.i { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+.app { display: flex; height: 100%; }
+.side { width: 221px; flex: none; background: var(--bg-side); display: flex; flex-direction: column; padding: 8px; gap: 24px; }
+.logo { width: 32px; height: 32px; margin: 4px; border-radius: var(--radius-m); background: var(--bg-subtle); display: grid; place-items: center; color: var(--fg-muted); }
+.nav { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.nav-item { display: flex; align-items: center; gap: 16px; height: 40px; padding: 0 12px; border-radius: var(--radius-m); text-align: left; font-weight: 500; width: 100%; }
+.nav-item:hover { background: var(--bg-hover); }
+.nav-item .grow { flex: 1; }
+.nav-sub { display: flex; flex-direction: column; overflow: auto; }
+.nav-sub button { height: 40px; padding: 0 12px 0 44px; text-align: left; border-radius: var(--radius-m); color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; }
+.nav-sub button:hover { background: var(--bg-hover); color: var(--fg); }
+.nav-sub button[aria-current="true"] { color: var(--fg); font-weight: 500; }
+.nav-sub .view-all { height: 32px; font-size: 12px; color: var(--fg-muted); }
+.nav-group { margin-top: 16px; }
+.nav-group .nav-item { font-weight: 400; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; margin: 4px; background: linear-gradient(135deg, #f5b04a, #b0682a); color: #fff; display: grid; place-items: center; font-size: 12px; font-weight: 600; }
+
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.toolbar { height: 56px; flex: none; display: flex; align-items: center; gap: 16px; padding: 0 max(16px, env(safe-area-inset-right, 0px)) 0 10px; border-bottom: 1px solid var(--border); }
+.toolbar h1 { font-size: 24px; font-weight: 400; margin: 0; }
+.icon-btn { width: 32px; height: 32px; display: grid; place-items: center; border-radius: var(--radius-m); color: var(--fg-muted); }
+.icon-btn:hover { background: var(--bg-hover); color: var(--fg); }
+.search { display: flex; align-items: center; gap: 8px; height: 36px; width: 264px; max-width: 100%; border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 12px; color: var(--fg-faint); background: var(--bg); }
+.search:focus-within { border-color: var(--accent); }
+.search input { border: 0; outline: 0; flex: 1; min-width: 0; font: inherit; color: var(--fg); background: transparent; }
+.search input::placeholder { color: var(--fg-faint); }
+.spacer { flex: 1; }
+
+.chat { flex: 1; overflow: auto; padding-block: 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.col { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+.sent { align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: 75%; }
+.bubble { background: var(--bg-subtle); border-radius: var(--radius-l); padding: 10px 12px; font-size: 16px; line-height: 28px; }
+.bubble a { color: var(--link); text-decoration: none; display: block; }
+.meta { display: flex; align-items: center; gap: 16px; font-size: 10px; color: var(--fg-muted); }
+.meta .acts { display: flex; gap: 8px; }
+.meta .acts .icon-btn { width: 24px; height: 24px; }
+.recv { display: flex; flex-direction: column; gap: 12px; font-size: 16px; line-height: 26px; }
+.recv p { margin: 0; max-width: 688px; }
+.table-wrap { border: 1px solid var(--border); border-radius: var(--radius-m); overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 760px; }
+th { text-align: left; font-weight: 400; color: var(--fg-muted); padding: 8px 12px; background: var(--bg-side); border-bottom: 1px solid var(--border); }
+td { padding: 6px 12px; border-bottom: 1px solid var(--border); }
+th + th, td + td { border-left: 1px solid var(--border); }
+.badge { display: inline-block; font-size: 12px; line-height: 20px; padding: 0 6px; border-radius: var(--radius-s); background: var(--bg-subtle); color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+.badge.red { background: var(--danger-bg); color: var(--danger); }
+.table-foot { text-align: right; padding: 8px 12px; font-size: 12px; color: var(--fg-muted); }
+
+.composer { flex: none; padding-block: 0 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.composer .box { max-width: 880px; margin: 0 auto; border: 1px solid var(--border); border-radius: var(--radius-l); padding: 16px; display: flex; flex-direction: column; gap: 24px; }
+.composer textarea { border: 0; outline: 0; resize: none; font: inherit; font-size: 16px; color: var(--fg); background: transparent; height: 48px; }
+.composer textarea::placeholder { color: var(--fg-faint); }
+.composer .row { display: flex; align-items: center; gap: 12px; }
+.send { width: 40px; height: 40px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; }
+
+/* ---- All chats dialog ---- */
+.scrim { position: fixed; inset: 0; background: var(--scrim); z-index: 20; display: grid; place-items: center; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+.dialog { background: var(--bg); border-radius: var(--radius-l); width: min(1036px, 100%); height: min(672px, 100%); display: flex; flex-direction: column; box-shadow: 0 24px 64px rgba(0,0,0,0.18); }
+.dlg-top { display: flex; align-items: center; gap: 16px; padding: 20px 20px 0; }
+.dlg-top .search { width: 480px; flex: 0 1 480px; }
+.dlg-body { display: flex; gap: 32px; padding: 24px 20px; flex: 1; min-height: 0; }
+.list { width: 240px; flex: none; overflow: auto; display: flex; flex-direction: column; }
+.empty { color: var(--fg-muted); padding: 12px; font-size: 14px; }
+.li { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 8px 0 12px; border-radius: var(--radius-m); cursor: pointer; color: var(--fg-muted); flex: none; }
+.li:hover, .li:focus-within { background: var(--bg-hover); color: var(--fg); }
+.li[aria-selected="true"] { color: var(--fg); font-weight: 500; }
+.li .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.li .acts { display: none; gap: 8px; }
+.li:hover .acts, .li:focus-within .acts { display: flex; }
+.li .acts button { width: 20px; height: 20px; display: grid; place-items: center; border-radius: var(--radius-s); color: var(--fg-muted); }
+.li .acts button:hover { color: var(--fg); background: var(--bg-subtle); }
+.li .acts button.del:hover { color: var(--danger); }
+.li.editing { background: var(--bg-hover); }
+.li.editing .acts { display: flex; }
+.li input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; color: var(--fg); font-weight: 500; }
+.preview { flex: 1; min-width: 0; overflow: auto; display: flex; flex-direction: column; gap: 20px; padding-right: 8px; }
+.preview .sent { max-width: 80%; }
+.preview .recv { font-size: 16px; }
+.preview .recv p + p { margin-top: 4px; }
+.preview-actions { display: flex; gap: 8px; margin-top: 4px; }
+.btn { height: 32px; padding: 0 12px; border-radius: var(--radius-m); border: 1px solid var(--border); font-size: 14px; display: inline-flex; align-items: center; gap: 8px; }
+.btn:hover { background: var(--bg-hover); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:hover { filter: brightness(1.08); }
+
+.toast { position: fixed; top: calc(16px + env(safe-area-inset-top, 0px)); left: 50%; translate: -50% 0; z-index: 40; background: var(--fg); color: var(--bg); border-radius: var(--radius-m); padding: 8px 8px 8px 16px; display: flex; gap: 16px; align-items: center; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.toast button { color: var(--bg); font-weight: 600; padding: 4px 8px; border-radius: var(--radius-s); }
+.toast button:hover { background: rgba(127,127,127,0.25); }
+
+@media (max-width: 767px) {
+  .side { display: none; }
+  .toolbar .search { display: none; }
+  .dlg-body { flex-direction: column; gap: 16px; }
+  .list { width: 100%; max-height: 40%; }
+  .sent { max-width: 90%; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-spark" viewBox="0 0 16 16"><path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3M3.4 3.4l1.8 1.8M10.8 10.8l1.8 1.8M3.4 12.6l1.8-1.8M10.8 5.2l1.8-1.8"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></symbol>
+  <symbol id="i-panel" viewBox="0 0 16 16"><rect x="2" y="3" width="12" height="10" rx="2"/><path d="M6 3v10"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 16 16"><path d="M2.5 4.5h11M4.5 8h7M6.5 11.5h3"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 16 16"><circle cx="8" cy="3.5" r=".6"/><circle cx="8" cy="8" r=".6"/><circle cx="8" cy="12.5" r=".6"/></symbol>
+  <symbol id="i-close" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></symbol>
+  <symbol id="i-open" viewBox="0 0 16 16"><path d="M9.5 2.5h4v4M13.5 2.5 7 9M11.5 9.5v3a1 1 0 0 1-1 1h-7a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 16 16"><path d="M10.5 2.5l3 3-8 8H2.5v-3z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 16 16"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.7 9.5h6.6L12 4M6.5 6.5v5M9.5 6.5v5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 16 16"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M11 5V3.5A1 1 0 0 0 10 2.5H3.5a1 1 0 0 0-1 1V10a1 1 0 0 0 1 1H5"/></symbol>
+  <symbol id="i-up" viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 16 16"><rect x="6" y="1.5" width="4" height="8" rx="2"/><path d="M3.5 7.5a4.5 4.5 0 0 0 9 0M8 12v2.5"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6"/><path d="M2 8h12M8 2c2 2 2 10 0 12M8 2c-2 2-2 10 0 12"/></symbol>
+  <symbol id="i-port" viewBox="0 0 16 16"><path d="M2.5 13.5h11M4 13.5V7h2.5v6.5M7.5 13.5V4h2.5v9.5M11 13.5v-5h1.5v5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 16 16"><path d="M4 1.5h5.5L12.5 4.5v10h-8.5zM6 7h4.5M6 9.5h4.5M6 12h3"/></symbol>
+  <symbol id="i-leaf" viewBox="0 0 16 16"><path d="M8 14.5V8M8 8c0-3 2-5.5 6-5.5 0 4-2.5 6-6 5.5zM8 10c0-2.5-1.5-4.5-5-4.5 0 3 2 5 5 4.5z"/></symbol>
+</svg>
+
+<div class="app">
+  <aside class="side">
+    <div class="logo"><svg class="i" viewBox="0 0 16 16"><path d="M13.5 2.5 2.5 13.5M13.5 2.5c-6 0-9 3-9 7M13.5 2.5c0 6-3 9-7 9"/></svg></div>
+    <nav class="nav" aria-label="Main">
+      <div class="nav-item motion-feedback-hover"><svg class="i"><use href="#i-spark"/></svg><span class="grow">Copilot</span><button class="icon-btn" style="width:20px;height:20px" id="new-chat" aria-label="New chat"><svg class="i"><use href="#i-plus"/></svg></button></div>
+      <div class="nav-sub" id="side-list"></div>
+      <div class="nav-group">
+        <button class="nav-item motion-feedback-hover"><svg class="i"><use href="#i-port"/></svg>Portfolio</button>
+        <button class="nav-item motion-feedback-hover"><svg class="i"><use href="#i-doc"/></svg>CMS</button>
+        <button class="nav-item motion-feedback-hover"><svg class="i"><use href="#i-leaf"/></svg>Dealflow</button>
+      </div>
+    </nav>
+    <div class="avatar" aria-label="Marcin">MS</div>
+  </aside>
+
+  <main class="main">
+    <header class="toolbar">
+      <button class="icon-btn motion-feedback-hover" aria-label="Toggle sidebar"><svg class="i"><use href="#i-panel"/></svg></button>
+      <h1>Copilot</h1>
+      <label class="search"><input id="top-search" placeholder="Search" aria-label="Search chats"><svg class="i"><use href="#i-filter"/></svg></label>
+      <span class="spacer"></span>
+      <button class="icon-btn motion-feedback-hover" aria-label="More"><svg class="i"><use href="#i-dots"/></svg></button>
+    </header>
+    <section class="chat" id="chat" aria-live="polite"></section>
+    <div class="composer">
+      <div class="box">
+        <textarea id="composer" placeholder="Ask me anything…" aria-label="Message"></textarea>
+        <div class="row">
+          <button class="icon-btn motion-feedback-hover" aria-label="Attach"><svg class="i"><use href="#i-plus"/></svg></button>
+          <button class="icon-btn motion-feedback-hover" aria-label="Web search"><svg class="i"><use href="#i-globe"/></svg></button>
+          <span class="spacer"></span>
+          <button class="icon-btn motion-feedback-hover" aria-label="Voice"><svg class="i"><use href="#i-mic"/></svg></button>
+          <button class="send motion-feedback-press" aria-label="Send"><svg class="i"><use href="#i-up"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div id="overlay-root"></div>
+<div id="toast-root"></div>
+
+<script>
+const ATLAS_TABLE = [
+  ["Atlas Discovery","2.14","3.3","AI-powered drug discovery platform"],
+  ["Talentpluto","1.7","2.3","Remote engineering talent marketplace"],
+  ["Coasty","1.3","1.5","AI customer support copilot"],
+  ["Poth Labs","1.3","1.5","Real-time data infrastructure tooling"],
+  ["Florin","1.0","1.1","Cross-border payments for SMBs"],
+  ["Insurf","1.0","0.9","Usage-based insurance for gig workers"],
+  ["FlowManual","0.9","0.2","No-code workflow documentation tool"]
+];
+let chats = [
+  { id: "atlas", title: "Atlas Discovery DD", date: "Jun 28, 5:56 PM", q: "Run due diligence on these 7 companies.", a: ["I scored all seven companies on the Radar model. None clears the investment bar: Atlas Discovery is the strongest at 2.14 overall, carried by a 3.3 CEO score, but the team has no clinical-stage exit yet.", "Talentpluto and Coasty sit in crowded markets with weak differentiation. Full reports are ready to download."], table: true },
+  { id: "nexa", title: "Nexa deal memo", date: "Jun 27, 2:10 PM", q: "Draft a deal memo for Nexa from the deck.", a: ["Nexa is an SMB neobank at Series A: $6.2M raised, $210K MRR growing 14% month over month, NRR at 118%.", "Signal score 78/100. Main risks are deposit concentration and a Mercury-led price war. Recommendation: take a second meeting and pull bank partner references."] },
+  { id: "lp", title: "Q3 LP letter draft", date: "Jun 25, 11:02 AM", q: "Write the Q3 LP letter.", a: ["Draft ready. Fund I is 62% deployed across 18 companies, net TVPI 1.34x and DPI 0.12x after the Coasty secondary.", "I kept the tone close to your Q2 letter and flagged two numbers for finance to confirm."] },
+  { id: "comps", title: "Fintech seed comps", date: "Jun 24, 4:40 PM", q: "Pull seed comps for European fintech.", a: ["I found 24 seed rounds in European fintech over the last 12 months. Median pre-money is $12M, median round $3.1M.", "Payments infrastructure prices 20% above the median; consumer lending prices below it."] },
+  { id: "florin", title: "Florin board memo", date: "Jun 22, 9:15 AM", q: "Prepare the Florin board memo.", a: ["Florin hit 3 of 5 KPIs this quarter. Revenue is green at 104% of plan, burn is amber at 112%, hiring is red with 2 of 5 roles filled.", "Suggested topics: runway extension and the US launch timing."] },
+  { id: "runway", title: "Portfolio runway check", date: "Jun 20, 3:30 PM", q: "Which portfolio companies have under 9 months of runway?", a: ["Three companies are under 9 months: Insurf (6 months), FlowManual (7) and Poth Labs (8).", "Insurf is raising a bridge; the other two haven't shared a plan in their last update."] },
+  { id: "insurf", title: "Insurf vs Lemonade", date: "Jun 18, 1:05 PM", q: "Compare Insurf with Lemonade.", a: ["Insurf prices per gig shift, while Lemonade prices per policy month. Insurf's loss ratio is 71% against Lemonade's 79% in 2025.", "The gap is Insurf's distribution: two platform partners account for 80% of policies."] },
+  { id: "climate", title: "Climate thesis map", date: "Jun 15, 10:20 AM", q: "Map our climate thesis into sub-segments.", a: ["I split the thesis into 9 sub-segments. Grid software and industrial heat have the most funded entrants; carbon accounting for SMBs has none above seed.", "That last one is the clearest white space."] },
+  { id: "poth", title: "Poth Labs warm intro", date: "Jun 12, 5:45 PM", q: "Find a warm intro to the Poth Labs founders.", a: ["The strongest path goes through Hubert, who worked with the CTO at Snowflake. Relationship score 8/10, last contact 3 weeks ago.", "I drafted a short intro request for him."] },
+  { id: "coasty", title: "Coasty cap table", date: "Jun 10, 12:00 PM", q: "Show Coasty's cap table after the seed extension.", a: ["After the extension founders hold 61%, the ESOP 12% and investors 27%. Our stake is 8.4%, down from 9.6%.", "Pro-rata for the Series A would need $420K to hold 8.4%."] },
+  { id: "talent", title: "Talentpluto references", date: "Jun 8, 2:30 PM", q: "Run reference checks on the Talentpluto CEO.", a: ["I found 6 former colleagues with public profiles; 4 replied. Feedback is consistently positive on hiring, mixed on enterprise sales.", "One reference flagged a 2023 key-customer loss."] },
+  { id: "pacing", title: "Fund II pacing", date: "Jun 5, 9:40 AM", q: "Are we on pace for Fund II deployment?", a: ["Fund II is 18 months in and 31% deployed, against a plan of 40%. At the current pace the commitment period ends with 22% undeployed.", "Two more initial checks per quarter close the gap."] },
+  { id: "yc", title: "YC W26 shortlist", date: "Jun 2, 6:10 PM", q: "Shortlist YC W26 companies for our thesis.", a: ["12 of 240 companies fit the thesis. Four have repeat founders; two are in SMB fintech.", "I added all 12 to Radar with a 'YC W26' tag."] },
+  { id: "flow", title: "FlowManual pass note", date: "May 29, 11:25 AM", q: "Write a pass note for FlowManual.", a: ["Kept it short and kind: market timing, not the team. I left the door open for the next round if they reach $50K MRR.", "Ready to send from your inbox."] }
+];
+let currentId = "atlas";
+let selectedId = "nexa";
+let editingId = null;
+let lastDeleted = null;
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const icon = n => `<svg class="i"><use href="#i-${n}"/></svg>`;
+
+/* Exit patterns: add .is-exiting, remove the element on animationend (Serenity motion.css convention). */
+function exitThen(el, done) {
+  const reduce = !el.getAnimations || getComputedStyle(el).animationName === "none";
+  el.classList.add("is-exiting");
+  let finished = false;
+  const end = () => { if (finished) return; finished = true; done(); };
+  el.addEventListener("animationend", end, { once: true });
+  setTimeout(end, 400);
+}
+
+function renderSide() {
+  const box = $("#side-list");
+  box.innerHTML = chats.slice(0, 10).map(c =>
+    `<button class="motion-feedback-hover" data-id="${c.id}" aria-current="${c.id === currentId}">${esc(c.title)}</button>`
+  ).join("") + `<button class="view-all motion-feedback-hover" id="view-all">View all</button>`;
+  box.querySelectorAll("[data-id]").forEach(b => b.onclick = () => openChat(b.dataset.id));
+  $("#view-all").onclick = openDialog;
+}
+
+function convoHTML(c, full) {
+  const table = c.table && full ? `
+    <div class="table-wrap"><table>
+      <thead><tr><th>Recommendation</th><th>Company</th><th>Overall</th><th>CEO score</th><th>Description</th></tr></thead>
+      <tbody>${ATLAS_TABLE.map(r => `<tr><td><span class="badge red">Reject</span></td><td>${r[0]}</td><td><span class="badge ${+r[1] >= 1 ? "red" : ""}">${r[1]}</span></td><td><span class="badge">${r[2]} CEO</span></td><td>${r[3]}</td></tr>`).join("")}</tbody>
+    </table><div class="table-foot">Download all reports</div></div>` : "";
+  const acts = `<div class="acts">${["copy"].map(n => `<button class="icon-btn motion-feedback-hover" aria-label="Copy">${icon(n)}</button>`).join("")}</div>`;
+  return `
+    <div class="sent"><div class="bubble">${esc(c.q)}</div><div class="meta">${acts}<span>${c.date}</span></div></div>
+    <div class="recv">${c.a.map(p => `<p>${esc(p)}</p>`).join("")}${table}<div class="meta"><span>${c.date}</span></div></div>`;
+}
+
+function openChat(id) {
+  currentId = id;
+  const c = chats.find(x => x.id === id);
+  const el = $("#chat");
+  el.innerHTML = c ? `<div class="col motion-enter-fade">${convoHTML(c, true)}</div>` : `<div class="col motion-enter-fade"><p class="recv" style="color:var(--fg-muted)">New chat. Ask anything about your deals or portfolio.</p></div>`;
+  renderSide();
+}
+
+/* ---------- All chats dialog ---------- */
+function openDialog() {
+  if ($("#scrim")) return;
+  editingId = null;
+  if (!chats.find(c => c.id === selectedId)) selectedId = chats[0]?.id;
+  const root = $("#overlay-root");
+  root.innerHTML = `
+    <div class="scrim motion-enter-scrim motion-exit-scrim" id="scrim">
+      <div class="dialog motion-enter-dialog motion-exit-dialog" role="dialog" aria-modal="true" aria-label="All chats" id="dialog">
+        <div class="dlg-top">
+          <label class="search"><input id="dlg-search" placeholder="Search" aria-label="Search all chats"><svg class="i"><use href="#i-filter"/></svg></label>
+          <span class="spacer"></span>
+          <button class="icon-btn motion-feedback-hover" id="dlg-close" aria-label="Close">${icon("close")}</button>
+        </div>
+        <div class="dlg-body">
+          <div class="list" id="list" role="listbox" aria-label="Chats"></div>
+          <div class="preview" id="preview"></div>
+        </div>
+      </div>
+    </div>`;
+  $("#scrim").addEventListener("mousedown", e => { if (e.target.id === "scrim") closeDialog(); });
+  $("#dlg-close").onclick = closeDialog;
+  $("#dlg-search").addEventListener("input", () => renderList(true));
+  renderList(true);
+  renderPreview();
+  setTimeout(() => $("#dlg-search").focus(), 0);
+  setHash("all-chats");
+}
+
+function closeDialog() {
+  const s = $("#scrim"); if (!s) return;
+  s.classList.add("is-exiting");
+  exitThen($("#dialog"), () => { $("#overlay-root").innerHTML = ""; });
+  setHash("");
+}
+
+function filtered() {
+  const q = ($("#dlg-search")?.value || "").trim().toLowerCase();
+  return q ? chats.filter(c => (c.title + " " + c.q + " " + c.a.join(" ")).toLowerCase().includes(q)) : chats;
+}
+
+function renderList(stagger) {
+  const list = $("#list"); if (!list) return;
+  const items = filtered();
+  if (!items.length) { list.innerHTML = `<div class="empty motion-enter-fade">No chats match "${esc($("#dlg-search").value)}". Try a company name.</div>`; return; }
+  list.innerHTML = items.map((c, i) => c.id === editingId ? `
+    <div class="li editing" data-id="${c.id}" role="option" aria-selected="true">
+      <input id="rename-input" value="${esc(c.title)}" aria-label="Chat name">
+      <div class="acts">
+        <button class="motion-feedback-hover" data-act="save" aria-label="Save name">${icon("check")}</button>
+        <button class="motion-feedback-hover" data-act="cancel" aria-label="Cancel">${icon("close")}</button>
+      </div>
+    </div>` : `
+    <div class="li motion-feedback-hover ${stagger ? "motion-enter-item" : ""} motion-exit-item" style="--i:${i}" data-id="${c.id}" role="option" aria-selected="${c.id === selectedId}" tabindex="0">
+      <span class="t">${esc(c.title)}</span>
+      <div class="acts">
+        <button class="motion-feedback-hover" data-act="open" aria-label="Open ${esc(c.title)}">${icon("open")}</button>
+        <button class="motion-feedback-hover" data-act="edit" aria-label="Rename ${esc(c.title)}">${icon("edit")}</button>
+        <button class="motion-feedback-hover del" data-act="delete" aria-label="Delete ${esc(c.title)}">${icon("trash")}</button>
+      </div>
+    </div>`).join("");
+
+  list.querySelectorAll(".li").forEach(li => {
+    const id = li.dataset.id;
+    li.addEventListener("click", e => {
+      const act = e.target.closest("[data-act]")?.dataset.act;
+      if (act === "open") return openFromDialog(id);
+      if (act === "edit") return startRename(id);
+      if (act === "delete") return removeChat(id, li);
+      if (act === "save") return saveRename();
+      if (act === "cancel") return cancelRename();
+      if (id !== editingId) select(id);
+    });
+    li.addEventListener("dblclick", e => { if (!e.target.closest("[data-act]") && id !== editingId) openFromDialog(id); });
+    li.addEventListener("keydown", e => {
+      if (id === editingId) return;
+      if (e.key === "Enter") openFromDialog(id);
+      if (e.key === "ArrowDown") { e.preventDefault(); li.nextElementSibling?.focus(); li.nextElementSibling && select(li.nextElementSibling.dataset.id, true); }
+      if (e.key === "ArrowUp") { e.preventDefault(); li.previousElementSibling?.focus(); li.previousElementSibling && select(li.previousElementSibling.dataset.id, true); }
+    });
+  });
+  const inp = $("#rename-input");
+  if (inp) {
+    inp.focus(); inp.select();
+    inp.addEventListener("keydown", e => { if (e.key === "Enter") saveRename(); if (e.key === "Escape") { e.stopPropagation(); cancelRename(); } });
+  }
+}
+
+function select(id, keepFocus) {
+  if (selectedId === id) return;
+  selectedId = id;
+  $("#list").querySelectorAll(".li").forEach(li => li.setAttribute("aria-selected", li.dataset.id === id));
+  renderPreview();
+}
+
+function renderPreview() {
+  const p = $("#preview"); if (!p) return;
+  const c = chats.find(x => x.id === selectedId);
+  p.innerHTML = c ? `<div class="motion-enter-fade" style="display:flex;flex-direction:column;gap:20px">${convoHTML(c, false)}
+    <div class="preview-actions"><button class="btn primary motion-feedback-press" id="pv-open">Open chat</button></div></div>`
+    : `<div class="empty">Select a chat to preview it.</div>`;
+  $("#pv-open")?.addEventListener("click", () => openFromDialog(c.id));
+}
+
+function openFromDialog(id) { closeDialog(); openChat(id); }
+
+function startRename(id) { editingId = id; selectedId = id; renderList(false); renderPreview(); setHash("rename"); }
+function saveRename() {
+  const v = $("#rename-input").value.trim();
+  const c = chats.find(x => x.id === editingId);
+  if (c && v) c.title = v;
+  editingId = null; renderList(false); renderSide();
+  $(`.li[data-id="${selectedId}"]`)?.focus();
+  setHash("all-chats");
+}
+function cancelRename() { editingId = null; renderList(false); $(`.li[data-id="${selectedId}"]`)?.focus(); setHash("all-chats"); }
+
+function removeChat(id, li) {
+  const idx = chats.findIndex(c => c.id === id);
+  lastDeleted = { chat: chats[idx], idx };
+  exitThen(li, () => {
+    chats.splice(idx, 1);
+    if (selectedId === id) selectedId = (chats[idx] || chats[idx - 1])?.id;
+    if (currentId === id) openChat(chats[0]?.id); else renderSide();
+    renderList(false); renderPreview();
+  });
+  showToast(`Deleted "${lastDeleted.chat.title}"`, "Undo", undoDelete);
+}
+function undoDelete() {
+  if (!lastDeleted) return;
+  chats.splice(lastDeleted.idx, 0, lastDeleted.chat);
+  selectedId = lastDeleted.chat.id; lastDeleted = null;
+  renderSide();
+  if ($("#list")) {
+    renderList(false); renderPreview();
+    const li = $(`.li[data-id="${selectedId}"]`); li?.classList.add("motion-enter-item");
+  }
+}
+
+let toastTimer;
+function showToast(text, action, fn) {
+  const root = $("#toast-root");
+  clearTimeout(toastTimer);
+  root.innerHTML = `<div class="toast motion-enter-toast motion-exit-toast" role="status"><span>${esc(text)}</span><button id="toast-act">${action}</button></div>`;
+  const t = root.firstElementChild;
+  const hide = () => exitThen(t, () => { if (root.firstElementChild === t) root.innerHTML = ""; });
+  $("#toast-act").onclick = () => { fn(); hide(); };
+  toastTimer = setTimeout(hide, 5000);
+}
+
+/* ---------- Global ---------- */
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("#scrim") && !editingId) closeDialog();
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); openDialog(); }
+});
+$("#top-search").addEventListener("focus", () => { $("#top-search").blur(); openDialog(); });
+$("#new-chat").onclick = () => { currentId = null; openChat(null); $("#composer").focus(); };
+
+function setHash(h) { try { history.replaceState(null, "", h ? "#" + h : location.pathname); } catch (_) {} }
+function route() {
+  const h = location.hash.slice(1);
+  if (h === "all-chats") openDialog();
+  if (h === "rename") { openDialog(); startRename(selectedId); }
+}
+
+openChat("atlas");
+route();
+window.addEventListener("hashchange", route);
+</script>
+</body>
+</html>
