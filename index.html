@@ -232,17 +232,18 @@ td.more { width: 44px; padding: 0 12px; }
   .side.open { display: flex; position: fixed; z-index: 30; inset: 0 auto 0 0; width: min(280px, 85vw); padding-top: calc(8px + env(safe-area-inset-top, 0px)); padding-left: max(8px, env(safe-area-inset-left, 0px)); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
   .side.open .drawer-close { display: grid; }
   .nav-scrim { position: fixed; inset: 0; z-index: 25; background: var(--scrim); }
-  .scrim.is-sheet { place-items: end stretch; padding: 96px 0 0; }
+  .scrim.is-sheet { place-items: end stretch; padding: 162px 0 0; }
   .dialog.sheet { width: 100%; height: 100%; border-radius: 16px 16px 0 0; border-bottom: 0; }
   .sheet .grabber { display: block; width: 48px; height: 4px; border-radius: 2px; background: rgba(0,0,0,0.16); margin: 8px auto 0; flex: none; }
-  .sheet .dlg-top { height: auto; padding: 16px 16px 0; }
-  .sheet .dlg-head { flex-direction: column; gap: 12px; padding-right: 40px; }
-  .sheet .dlg-top .search { width: 100%; }
-  .sheet .dlg-close { top: 8px; right: 8px; }
-  .sheet .dlg-body { padding: 16px 8px; }
+  /* Figma 31 · 768: title and search in one row, no close button */
+  .sheet .dlg-top { height: auto; padding: 20px 16px 8px; }
+  .sheet .dlg-head { align-items: center; gap: 16px; }
+  .sheet .dlg-top .search { flex: 1; width: auto; min-width: 0; }
+  .sheet .dlg-close { display: none; }
+  .sheet .dlg-body { padding: 16px 8px 24px; }
   .sheet .list { width: 100%; }
   .sheet .preview, .sheet .dlg-keys { display: none; }
-  .sheet .li { height: 48px; }
+  .sheet .li { height: 38px; }
   /* Figma comment: icons 12px apart in Icon/Quaternary (Serenity: Foundations) */
   .sheet .li .right { display: flex; gap: 12px; }
   .sheet .li .right .ib { width: 16px; height: 16px; color: var(--color-icon-quaternary); }
@@ -250,7 +251,7 @@ td.more { width: 44px; padding: 0 12px; }
 }
 @media (max-width: 767px) {
   .toolbar .search { display: none; }
-  .scrim.is-sheet { padding-top: 48px; }
+  .scrim.is-sheet { padding-top: 134px; }
   .toast { top: calc(16px + env(safe-area-inset-top, 0px)); }
 }
 </style>
