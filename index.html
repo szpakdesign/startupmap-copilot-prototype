@@ -90,6 +90,8 @@ html, body { height: 100%; }
 body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 18px; letter-spacing: -0.45px; font-optical-sizing: auto; -webkit-font-smoothing: antialiased; }
 * { box-sizing: border-box; }
 button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+/* Buttons and fields take the Figma text style of their context (browsers reset letter-spacing on them) */
+button, input, textarea { letter-spacing: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 svg { display: block; flex: none; }
 .ib { display: grid; place-items: center; flex: none; border-radius: 8px; }
