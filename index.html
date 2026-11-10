@@ -60,6 +60,14 @@
 @keyframes motion-enter-item { from { opacity: 0; block-size: 0; } }
 .motion-exit-item.is-exiting { interpolate-size: allow-keywords; overflow: clip; animation: motion-exit-item var(--motion-duration-exit-s) var(--motion-easing-exit) forwards; }
 @keyframes motion-exit-item { to { opacity: 0; block-size: 0; } }
+.motion-enter-sheet { animation: motion-enter-sheet var(--motion-duration-enter-m) var(--motion-easing-enter) both; }
+@keyframes motion-enter-sheet { from { transform: translateY(100%); } }
+.motion-exit-sheet.is-exiting { animation: motion-exit-sheet var(--motion-duration-exit-m) var(--motion-easing-exit) forwards; }
+@keyframes motion-exit-sheet { to { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .motion-enter-sheet { animation-name: motion-enter-fade; }
+  .motion-exit-sheet.is-exiting { animation-name: motion-exit-fade; }
+}
 .motion-enter-toast { animation: motion-enter-toast var(--motion-duration-enter-m) var(--motion-easing-enter) both; }
 @keyframes motion-enter-toast { from { opacity: 0; transform: translateY(calc(var(--motion-distance-m) * -1)); } }
 .motion-exit-toast.is-exiting { animation: motion-exit-toast var(--motion-duration-exit-s) var(--motion-easing-exit) forwards; }
@@ -207,15 +215,29 @@ td.more { width: 44px; padding: 0 12px; }
 /* Label/Medium (toast): 16/20, -0.10px */
 .toast .label { letter-spacing: -0.10px; }
 
-@media (max-width: 767px) {
+/* ---- Tablet and phone (below 1024): no Sidebar, All chats opens as a bottom Sheet ---- */
+.grabber { display: none; }
+@media (max-width: 1023px) {
   .side { display: none; }
+  .scrim.is-sheet { place-items: end stretch; padding: 96px 0 0; }
+  .dialog.sheet { width: 100%; height: 100%; border-radius: 16px 16px 0 0; border-bottom: 0; }
+  .sheet .grabber { display: block; width: 48px; height: 4px; border-radius: 2px; background: rgba(0,0,0,0.16); margin: 8px auto 0; flex: none; }
+  .sheet .dlg-top { height: auto; padding: 16px 16px 0; }
+  .sheet .dlg-head { flex-direction: column; gap: 12px; padding-right: 40px; }
+  .sheet .dlg-top .search { width: 100%; }
+  .sheet .dlg-close { top: 8px; right: 8px; }
+  .sheet .dlg-body { padding: 16px 8px; }
+  .sheet .list { width: 100%; }
+  .sheet .preview, .sheet .dlg-keys { display: none; }
+  .sheet .li { height: 48px; }
+  .sheet .li .right { display: flex; gap: 4px; }
+  .sheet .li .right .ib { width: 32px; height: 32px; }
+  .sheet .li [data-act="open"] { display: none; }
+}
+@media (max-width: 767px) {
   .toolbar .search { display: none; }
-  .dlg-top .search { width: 100%; }
-  .dlg-head { flex-direction: column; gap: 8px; padding-right: 40px; }
-  .dlg-top { height: auto; padding-bottom: 8px; }
-  .dlg-body { flex-direction: column; gap: 16px; }
-  .list { width: 100%; max-height: 45%; }
-  .dlg-keys { display: none; }
+  .scrim.is-sheet { padding-top: 48px; }
+  .toast { top: calc(16px + env(safe-area-inset-top, 0px)); }
 }
 </style>
 </head>
@@ -231,7 +253,7 @@ td.more { width: 44px; padding: 0 12px; }
   <main class="main">
     <header class="toolbar">
       <div class="title">
-        <button class="ib ib32 motion-feedback-hover" aria-label="Collapse sidebar" data-icon="sidebar"></button>
+        <button class="ib ib32 motion-feedback-hover" id="sidebar-btn" aria-label="All chats" data-icon="sidebar"></button>
         <h1>Copilot</h1>
       </div>
       <label class="search"><input placeholder="Search" aria-label="Search"><span class="ib ib32 motion-feedback-hover" data-icon="filter"></span></label>
@@ -449,12 +471,15 @@ function openChat(id) {
 }
 
 /* ---------- All chats dialog ---------- */
+const isSheet = () => matchMedia("(max-width: 1023px)").matches;
 function openDialog() {
   if ($("#scrim")) return;
+  const sheet = isSheet();
   editingId = null; confirmId = null; previewId = currentId;
   $("#overlay-root").innerHTML = `
-    <div class="scrim motion-enter-scrim motion-exit-scrim" id="scrim">
-      <div class="dialog motion-enter-dialog motion-exit-dialog" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" tabindex="-1">
+    <div class="scrim motion-enter-scrim motion-exit-scrim ${sheet ? "is-sheet" : ""}" id="scrim">
+      <div class="dialog ${sheet ? "sheet motion-enter-sheet motion-exit-sheet" : "motion-enter-dialog motion-exit-dialog"}" id="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" tabindex="-1">
+        <div class="grabber" aria-hidden="true"></div>
         <div class="dlg-top">
           <div class="dlg-head"><h2 id="dlg-title">All chats</h2><label class="search"><input id="dlg-search" placeholder="Search" aria-label="Search chats"><span class="ib ib32 motion-feedback-hover">${ic("filter")}</span></label></div>
           <button class="ib ib40 dlg-close motion-feedback-hover" id="dlg-close" aria-label="Close">${ic("close")}</button>
@@ -581,7 +606,7 @@ function renderList(stagger) {
       else if (act === "cancel-delete") { confirmId = null; renderList(false); $("#dialog")?.focus(); }
       else if (act === "save") saveRename();
       else if (act === "cancel") cancelRename();
-      else if (!editingId && !confirmId) setActive(id, false);
+      else if (!editingId && !confirmId) { if ($("#dialog").classList.contains("sheet")) { closeDialog(); openChat(id); } else setActive(id, false); }
     });
   });
   const inp = $("#rename-input");
@@ -638,6 +663,7 @@ document.addEventListener("keydown", e => {
 });
 
 hydrateIcons();
+$("#sidebar-btn").onclick = () => { if (isSheet()) openDialog(); };
 $("#avatar").src = AVATAR;
 openChat("c0");
 if (location.hash === "#all-chats") openDialog();
