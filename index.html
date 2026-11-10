@@ -169,11 +169,12 @@ td.more { width: 44px; padding: 0 12px; }
 .li { display: flex; align-items: center; gap: 4px; height: 40px; padding: 0 12px; border-radius: 8px; color: var(--fg-2); cursor: default; flex: none; }
 .li .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .li.current { color: var(--fg); font-weight: 500; }
-.li:hover, .li:focus-within, .li.editing { background: var(--hover); color: var(--fg); }
+.li:hover, .li:has(:focus-visible), .li:focus-visible, .li.editing { background: var(--hover); color: var(--fg); }
+.li:focus { outline: none; }
 .li.selected { color: var(--fg); font-weight: 500; }
 .dialog:focus { outline: none; }
 .li .right { display: none; gap: 8px; align-items: center; }
-.li:hover .right, .li:focus-within .right, .li.editing .right { display: flex; }
+.li:hover .right, .li:has(:focus-visible) .right, .li:focus-visible .right, .li.editing .right { display: flex; }
 .li input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; color: var(--fg); padding: 0; caret-color: #4d63fd; }
 .li .right .ib:hover { background: none; }
 :root { --color-icon-primary: #1a1a1a; --color-icon-secondary: #4a4a4a; }
