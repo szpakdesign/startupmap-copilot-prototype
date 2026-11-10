@@ -452,7 +452,7 @@ function openDialog() {
   $("#dialog").focus();
 }
 
-/* Keyboard: arrows move through chats, Enter renames, Enter again saves */
+/* Keyboard: arrows select a chat, Enter opens it, Shift+Enter renames, Enter saves */
 function onDialogKey(e) {
   if (editingId || confirmId) return;
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeDialog(); return; }
@@ -465,7 +465,8 @@ function onDialogKey(e) {
     setActive(ids[i], true);
   } else if (e.key === "Enter" && e.target.id !== "dlg-search" && ids.includes(previewId)) {
     e.preventDefault();
-    startRename(previewId);
+    if (e.shiftKey) startRename(previewId);
+    else { const id = previewId; closeDialog(); openChat(id); }
   }
 }
 function setActive(id, scroll) {
