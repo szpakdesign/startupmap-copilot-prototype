@@ -697,7 +697,17 @@ $("#sidebar-btn").onclick = () => { if (isSheet()) openNav(); };
 $("#drawer-close").onclick = () => closeNav();
 $("#nav-scrim").onclick = () => closeNav();
 document.addEventListener("keydown", e => { if (e.key === "Escape" && $(".side").classList.contains("open") && !$("#scrim")) closeNav(); });
-matchMedia("(max-width: 1023px)").addEventListener("change", e => { if (!e.matches) closeNav(); });
+/* Switch the open All chats overlay between Dialog and bottom Sheet when the window crosses 1024 */
+matchMedia("(max-width: 1023px)").addEventListener("change", e => {
+  if (!e.matches) closeNav();
+  const sc = $("#scrim"), dlg = $("#dialog");
+  if (!sc || !dlg || sc.classList.contains("is-exiting")) return;
+  sc.classList.toggle("is-sheet", e.matches);
+  dlg.classList.remove("motion-enter-dialog", "motion-enter-sheet", "motion-exit-dialog", "motion-exit-sheet");
+  dlg.classList.toggle("sheet", e.matches);
+  dlg.classList.add(e.matches ? "motion-exit-sheet" : "motion-exit-dialog");
+  renderPreview();
+});
 $("#avatar").src = AVATAR;
 openChat("c0");
 if (location.hash === "#all-chats") openDialog();
