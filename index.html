@@ -193,7 +193,7 @@ td.more { width: 44px; padding: 0 12px; }
 .li:hover .right, .li:has(:focus-visible) .right, .li:focus-visible .right, .li.editing .right { display: flex; }
 .li input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font: inherit; color: var(--fg); padding: 0; caret-color: #4d63fd; }
 .li .right .ib:hover { background: none; }
-:root { --color-icon-primary: #1a1a1a; --color-icon-secondary: #4a4a4a; }
+:root { --color-icon-primary: #1a1a1a; --color-icon-secondary: #4a4a4a; --color-icon-quaternary: #b3b3b3; }
 .li .right .ib { color: var(--color-icon-secondary); }
 .li .right .ib:hover { color: var(--color-icon-primary); }
 .preview { flex: 1; min-width: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; padding-right: 4px; }
@@ -243,8 +243,9 @@ td.more { width: 44px; padding: 0 12px; }
   .sheet .list { width: 100%; }
   .sheet .preview, .sheet .dlg-keys { display: none; }
   .sheet .li { height: 48px; }
-  .sheet .li .right { display: flex; gap: 4px; }
-  .sheet .li .right .ib { width: 32px; height: 32px; }
+  /* Figma comment: icons 12px apart in Icon/Quaternary (Serenity: Foundations) */
+  .sheet .li .right { display: flex; gap: 12px; }
+  .sheet .li .right .ib { width: 16px; height: 16px; color: var(--color-icon-quaternary); }
   .sheet .li [data-act="open"] { display: none; }
 }
 @media (max-width: 767px) {
