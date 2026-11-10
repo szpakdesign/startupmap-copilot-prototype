@@ -452,9 +452,23 @@ function openDialog() {
   $("#dialog").focus();
 }
 
-/* Keyboard: arrows select a chat, Enter opens it, Shift+Enter renames, Enter saves */
+/* Keyboard: arrows select a chat, Enter opens it, Shift+Enter renames (Enter saves), Shift+Backspace deletes (Enter confirms, Esc cancels) */
+function askDelete(id) {
+  confirmId = id; editingId = null; renderList(false);
+  $(`.li[data-id="${id}"]`)?.scrollIntoView({ block: "nearest" });
+  $("#dialog")?.focus();
+}
 function onDialogKey(e) {
+  if (confirmId && e.key === "Enter") {
+    e.preventDefault();
+    const id = confirmId; confirmId = null;
+    removeChat(id, $(`.li[data-id="${id}"]`)); $("#dialog")?.focus();
+    return;
+  }
   if (editingId || confirmId) return;
+  if (e.key === "Backspace" && e.shiftKey && e.target.id !== "dlg-search" && filtered().some(c => c.id === previewId)) {
+    e.preventDefault(); askDelete(previewId); return;
+  }
   if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); closeDialog(); return; }
   const ids = filtered().map(c => c.id);
   if (!ids.length) return;
@@ -531,7 +545,7 @@ function renderList(stagger) {
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (act === "open") { closeDialog(); openChat(id); }
       else if (act === "edit") startRename(id);
-      else if (act === "delete") { confirmId = id; editingId = null; renderList(false); list.querySelector(`[data-act="confirm-delete"]`)?.focus(); }
+      else if (act === "delete") askDelete(id);
       else if (act === "confirm-delete") { confirmId = null; removeChat(id, li); $("#dialog")?.focus(); }
       else if (act === "cancel-delete") { confirmId = null; renderList(false); $("#dialog")?.focus(); }
       else if (act === "save") saveRename();
