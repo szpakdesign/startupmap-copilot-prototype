@@ -523,6 +523,10 @@ function renderList(stagger) {
   list.querySelectorAll(".li").forEach(li => {
     const id = li.dataset.id;
 
+    li.addEventListener("dblclick", e => {
+      if (e.target.closest("[data-act]") || editingId || confirmId) return;
+      closeDialog(); openChat(id);
+    });
     li.addEventListener("click", e => {
       const act = e.target.closest("[data-act]")?.dataset.act;
       if (act === "open") { closeDialog(); openChat(id); }
