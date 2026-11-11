@@ -107,7 +107,15 @@ svg { display: block; flex: none; }
 .app { display: flex; height: 100%; }
 
 /* ---- Sidebar (navigation: vertical) ---- */
-.side { width: 221px; flex: none; background: var(--side); display: flex; flex-direction: column; gap: 24px; padding: 8px 8px 12px; }
+.side { width: 221px; flex: none; background: var(--side); display: flex; flex-direction: column; gap: 24px; padding: 8px 8px 12px; overflow: clip; transition: width var(--motion-duration-exit-m) var(--motion-easing-exit); }
+.side[data-expanded] { transition: width var(--motion-duration-enter-m) var(--motion-easing-enter); }
+@media (prefers-reduced-motion: reduce) { .side, .side[data-expanded] { transition: none; } }
+/* Collapsed rail (1024 to 1439 by default, SR-039): logo, section icons, avatar */
+.side.collapsed { width: 56px; }
+.side.collapsed .nav-item { width: 40px; height: 40px; padding: 0; justify-content: center; }
+.side.collapsed .nav-item .label, .side.collapsed .nav-item .ib16, .side.collapsed .nav-row, .side.collapsed .view-all { display: none; }
+.side.collapsed .nav-item[style] { margin-top: 0 !important; }
+.side.collapsed .logo, .side.collapsed .avatar { margin: 4px; }
 .logo-row { display: flex; align-items: center; height: 40px; }
 .logo { width: 32px; height: 32px; margin: 4px; border-radius: 8px; background: var(--logo-bg); display: grid; place-items: center; }
 .menu { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: auto; }
@@ -288,7 +296,7 @@ td.more { width: 44px; padding: 0 12px; }
   <main class="main">
     <header class="toolbar">
       <div class="title">
-        <button class="ib ib32 motion-feedback-hover" id="sidebar-btn" aria-label="All chats" data-icon="sidebar"></button>
+        <button class="ib ib32 motion-feedback-hover" id="sidebar-btn" aria-label="Sidebar" aria-expanded="true" data-icon="sidebar"></button>
         <h1>Copilot</h1>
       </div>
       <label class="search"><input placeholder="Search" aria-label="Search"><span class="ib ib32 motion-feedback-hover" data-icon="filter"></span></label>
@@ -570,7 +578,7 @@ function openChat(id) {
   const c = chats.find(x => x.id === id); if (!c) return;
   currentId = id;
   $("#chat").innerHTML = `<div class="col motion-enter-fade">${convoHTML(c, true)}</div>`;
-  $("#chat").scrollTop = 0;
+  $("#chat").scrollTop = $("#chat").scrollHeight; /* open on the latest message, as in Figma */
   renderMenu();
 }
 
@@ -781,7 +789,22 @@ function closeNav(then) {
   sc.classList.add("is-exiting");
   exitThen(side, () => { side.classList.remove("open", "motion-enter-sheet", "motion-exit-sheet", "is-exiting"); sc.hidden = true; sc.classList.remove("is-exiting"); then && then(); });
 }
-$("#sidebar-btn").onclick = () => { if (isSheet()) openNav(); };
+/* From 1024 the sidebar button collapses and expands the Sidebar (Expand/Width); below 1024 it opens the drawer */
+const wide = matchMedia("(min-width: 1440px)");
+let sideCollapsed = !wide.matches;
+function applySide() {
+  const side = $(".side");
+  side.classList.toggle("collapsed", sideCollapsed && !isSheet());
+  side.toggleAttribute("data-expanded", !sideCollapsed);
+  $("#sidebar-btn").setAttribute("aria-expanded", String(!sideCollapsed || isSheet() && side.classList.contains("open")));
+}
+wide.addEventListener("change", e => { sideCollapsed = !e.matches; applySide(); });
+matchMedia("(max-width: 1023px)").addEventListener("change", applySide);
+applySide();
+$("#sidebar-btn").onclick = () => {
+  if (isSheet()) { openNav(); return; }
+  sideCollapsed = !sideCollapsed; closeRowMenu(); applySide();
+};
 $("#drawer-close").onclick = () => closeNav();
 $("#nav-scrim").onclick = () => closeNav();
 document.addEventListener("keydown", e => { if (e.key === "Escape" && $(".side").classList.contains("open") && !$("#scrim")) closeNav(); });
